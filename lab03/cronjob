@@ -1,0 +1,10 @@
+# Формат: минутa час день_месяца месяц день_недели пользователь команда
+
+# Ежедневно в 6:00 утра: MDL -> EUR за предыдущий день
+0 6 * * * root python3 /app/currency_exchange_rate.py MDL EUR $(date -d "yesterday" '+\%Y-\%m-\%d') --key 1234 >> /var/log/cron.log 2>&1
+
+# Еженедельно в пятницу в 17:00: MDL -> USD за предыдущую неделю
+0 17 * * 5 root python3 /app/currency_exchange_rate.py MDL USD $(date -d "last friday" '+\%Y-\%m-\%d') --key 1234 >> /var/log/cron.log 2>&1
+
+# Тестовая задача: выполняется каждую минуту
+* * * * * root python3 /app/currency_exchange_rate.py MDL EUR 2025-03-01 --key 1234 >> /var/log/cron.log 2>&1

@@ -9,7 +9,7 @@ from datetime import datetime
 import requests
 
 # URL сервиса
-SERVICE_URL = "http://localhost:8080/"
+SERVICE_URL = "http://php_service:80/"
 
 # список валют (для предупреждений)
 ALLOWED_CURRENCIES = {"MDL", "USD", "EUR", "RON", "RUS", "UAH", "GBP", "CHF", "JPY"}
@@ -80,7 +80,7 @@ def main():
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(script_dir, ".."))
+    project_root = os.path.abspath(os.path.join(script_dir))
     logger = setup_logging(project_root)
 
     from_cur = args.from_currency.strip().upper()

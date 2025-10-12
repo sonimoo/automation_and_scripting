@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   php_service:
     container_name: lab03_php
@@ -10,3 +12,11 @@ services:
       - .env
     volumes:
       - ./app:/var/www/html
+
+  cron_service:
+    build: .
+    container_name: lab03_cron
+    image: lab03_cron_image
+    restart: unless-stopped
+    depends_on:
+      - php_service
