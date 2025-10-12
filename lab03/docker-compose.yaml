@@ -1,0 +1,12 @@
+services:
+  php_service:
+    container_name: lab03_php
+    image: php:8.2-apache
+    ports:
+      - "8080:80"
+    environment:
+      - API_KEY=1234
+    env_file:
+      - .env
+    volumes:
+      - ./app:/var/www/html
