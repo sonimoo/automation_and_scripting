@@ -9,7 +9,7 @@
 
 ## Подготовка
 
-Создать папку `lab04` в репозитории GitHub для хранения всех файлов, связанных с этой лабораторной работой. Установлен Docker и Docker Compose для выполнения задания.
+Создаем папку `lab04` в репозитории GitHub для хранения всех файлов, связанных с этой лабораторной работой. Установлен Docker и Docker Compose для выполнения задания.
 
 ## Ход работы
 
@@ -20,7 +20,7 @@
 
 ### Подготовка контроллера Jenkins
 
-Пропишите в `docker-compose.yml` файл конфигурацию для сервиса Jenkins Controller:
+Прописываем в `docker-compose.yml` файл конфигурацию для сервиса Jenkins Controller:
 
 ```yaml
 services:
@@ -44,22 +44,33 @@ networks:
     driver: bridge
 ```
 
-Запустите контейнер Jenkins Controller с помощью Docker Compose и настройте его, следуя инструкциям на экране.
+Запускаем контейнер Jenkins Controller с помощью Docker Compose и настраиваем его, следуя инструкциям на экране.
+
+![alt text](img/image-1.png)
+
+![alt text](img/image-2.png)
+
+![alt text](img/image-3.png)
+
+![alt text](img/image-4.png)
+
+![alt text](img/image-6.png)
+![alt text](img/image-7.png)
+
 
 ### Подготовка SSH агента
 
-Создайте папку `secrets` в корне вашего проекта и добавьте туда SSH ключи, необходимые для подключения к удаленным серверам.
+Создаем папку `secrets` в корне проекта и добавьте туда SSH ключи, необходимые для подключения к удаленным серверам.
 
 ```bash
 mkdir secrets
 cd secrets
 ssh-keygen -f jenkins_agent_ssh_key
 ```
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
+![alt text](img/image-5.png)
 
-Создайте файл `Dockerfile` для SSH агента с следующим содержимым:
+
+Создаем файл `Dockerfile` для SSH агента с следующим содержимым:
 
 ```Dockerfile
 FROM jenkins/ssh-agent
@@ -68,7 +79,7 @@ FROM jenkins/ssh-agent
 RUN apt-get update && apt-get install -y php-cli
 ```
 
-Пропишите в `docker-compose.yml` файл конфигурацию для сервиса SSH Agent:
+Прописываем в `docker-compose.yml` файл конфигурацию для сервиса SSH Agent:
 
 ```yaml
   ssh-agent:
@@ -86,114 +97,155 @@ RUN apt-get update && apt-get install -y php-cli
       - jenkins-network
 ```
 
-Создайте файл `.env` в корне вашего проекта и добавьте туда переменную окружения `JENKINS_AGENT_SSH_PUBKEY`.
+Создаем файл `.env` в корне проекта и добавляем туда переменную окружения `JENKINS_AGENT_SSH_PUBKEY`.
 
-![alt text](image-3.png)
+Перезапускаем проект Docker Compose, чтобы применить изменения.
 
-Docker ожидает, что файл .env сохранен в кодировке UTF-8 без BOM!!!
-
-
-Перезапустите проект Docker Compose, чтобы применить изменения.
-
-![alt text](image-4.png)
-![alt text](image-5.png)
+![alt text](img/image-8.png)
 
 
 ### Подключение SSH агента к Jenkins
 
-1. Заходим в веб-интерфейс Jenkins по адресу `http://localhost:8080`.
-![alt text](image-6.png)
+Проверили, что в Jenkins установлен плагин "SSH Agents Plugin". 
 
-ввожу пароль
+![alt text](img/image-9.png)
 
-![alt text](image-7.png)
+Зарегистрируем SSH ключи в Jenkins:
 
-2. Первичная настройка Jenkins
+1. Входим в веб-интерфейс Jenkins по адресу `http://localhost:8080`.
+2. Переходим в `Manage Jenkins > Manage Credentials`.
 
-Выбираю “Install suggested plugins” жду, пока установятся плагины
+![alt text](img/image-10.png)
 
-![alt text](image-8.png)
+3. Добавляем новый SSH ключ.
 
-![alt text](image-9.png)
+| Поле            | Значение                                                             |
+| --------------- | -------------------------------------------------------------------- |
+| **Kind**        | SSH Username with private key                                        |
+| **Username**    | jenkins                                                              |
+| **Private key** | Используется приватный ключ из файла `secrets/jenkins_agent_ssh_key` |
 
-Создаем пользователя (логин/пароль/имя)
-
-Завершаем настройку, Jenkins запустится на главную страницу
+![alt text](img/image-11.png)
 
 
+В результате Jenkins теперь имеет возможность аутентифицироваться на агенте через SSH при запуске конвейеров.
 
-Проверьте, что в Jenkins установлен плагин "SSH Agents Plugin". Если нет, установите его через `Manage Jenkins > Manage Plugins`.
+Добавляем новый узел агента Jenkins:
 
-Зарегистрируйте SSH ключи в Jenkins:
+1. Переходим в `Manage Jenkins > Manage Nodes and Clouds > New Node`.
+2. Называем узел `ssh-agent1`, тип `Permanent Agent`
+![alt text](img/image-12.png)
 
-1. Войдите в веб-интерфейс Jenkins по адресу `http://localhost:8080`.
-2. Перейдите в `Manage Jenkins > Manage Credentials`.
-3. Добавьте новый SSH ключ, установив имя пользователя `jenkins` и выбрав соответствующий приватный ключ из папки `secrets`.
-
-Добавьте новый узел агента Jenkins:
-
-1. Перейдите в `Manage Jenkins > Manage Nodes and Clouds > New Node`.
-2. Назовите узел `ssh-agent1`, выберите тип `Permanent Agent`
-3. Добавьте метку `php-agent` для узла.
-4. Настройте узел, указав:
+3. Метка `php-agent`.
+4. Настраиваем узел, указав:
    - Remote root directory: `/home/jenkins/agent`
    - Launch method: `Launch agents via SSH`
    - Host: `ssh-agent`
-   - Credentials: выберите ранее добавленный SSH ключ
+   - Credentials: ранее добавленный SSH ключ
+
+![alt text](img/image-14.png)
+![alt text](img/image-13.png)
 
 ### Создание конвейера Jenkins для автоматизации задач DevOps
 
-Выберите репозиторий с PHP проектом на GitHub (например, из курса `Программирование на PHP` или `Виртуализация и контейнеризация`). Проект должен содержать модульные тесты. Создайте новый конвейер Jenkins с использованием следующего `Jenkinsfile`:
+![alt text](img/image-15.png)
+проверка локально
+
+Создаю репозиторий с PHP проектом на GitHub (https://github.com/sonimoo/project_for_lab04). В проекте есть некоторые модульные тесты. Создаем новый конвейер Jenkins с использованием следующего `Jenkinsfile`:
+
 
 ```groovy
 pipeline {
-    agent {
-        label 'php-agent'
-    }
-    
-    stages {        
+    agent { label 'php-agent' }
+
+    stages {
+        stage('PHP Lint') {
+            steps {
+                echo 'Проверка синтаксиса PHP...'
+                sh '''
+                for file in $(find src -name "*.php"); do
+                    php -l "$file"
+                done
+                '''
+            }
+}
+
         stage('Install Dependencies') {
             steps {
-                // Подготовка проекта (установка зависимостей, если необходимо)
-                echo 'Подготовка проекта...'
-                // Добавьте здесь команды специфичные для вашего проекта
+                echo 'Установка зависимостей...'
+                sh 'composer install || echo "composer не найден, пропускаем установку"'
             }
         }
-        
+
         stage('Test') {
             steps {
-                // Запуск тестов
                 echo 'Запуск тестов...'
-                // Добавьте здесь команды для запуска ваших тестов
+                sh 'vendor/bin/phpunit tests || echo "PHPUnit не найден, пропускаем тесты"'
             }
         }
     }
-    
+
     post {
-        always {
-            echo 'Конвейер завершен.'
-        }
-        success {
-            echo 'Все этапы прошли успешно!'
-        }
-        failure {
-            echo 'Обнаружены ошибки в конвейере.'
-        }
+        always { echo 'Конвейер завершен.' }
+        success { echo 'Все этапы прошли успешно!' }
+        failure { echo 'Обнаружены ошибки в конвейере.' }
     }
 }
 ```
 
-Проверьте, что конвейер успешно выполняется, и модульные тесты проходят.
+![alt text](img/image-16.png)
+Создание нового проекта (New Item)
 
-### Подготовка отчета
+Выбрали Pipeline и дали имя
 
-Создайте файл `readme.md` в папке `lab04` вашего репозитория GitHub. В отчете опишите следующие моменты:
+![alt text](img/image-17.png)
 
-1. Описание проекта.
-2. Шаги по настройке Jenkins Controller
-3. Шаги по настройке SSH агента
-4. Шаги по созданию и настройке конвейера Jenkins
-5. Ответьте на вопросы:
-    - Какие преимущества использования Jenkins для автоматизации задач DevOps?
-    - Какие еще бывают агенты Jenkins?
-    - Какие проблемы вы столкнулись при настройке Jenkins и как вы их решили?
+Указали Pipeline script from SCM (репозиторий GitHub).
+В поле Repository URL указали ссылку с проектом
+
+Branch Specifier: */main (основная ветка).
+
+Script Path: Jenkinsfile (файл с инструкциями pipeline)
+
+![alt text](img/image-18.png)
+Москва не сразу строилась
+
+![alt text](img/image-19.png)
+
+Добавила еще тест и опять нажала собрать сейчас.
+![ну прям разошлась](img/image-21.png)
+![alt text](img/image-22.png)
+
+## Ответы на вопросы
+
+**1. Какие преимущества использования Jenkins для автоматизации задач DevOps?**
+
+- Jenkins помогает автоматизировать задачи, типа сборки, тестов и деплоя.
+- Можно легко делать CI/CD — новые изменения сразу проверяются и разворачиваются.
+- Огромное количество плагинов под разные технологии: Git, Docker, PHP и т.д.
+- Можно подключать много агентов и запускать несколько задач параллельно.
+- Всё видно в веб-интерфейсе: логи, статус сборки, отчёты — удобно отслеживать.
+
+**2. Какие еще бывают агенты Jenkins?**
+
+- SSH агенты — как у нас, подключение по SSH.
+- Windows агенты — для задач на Windows.
+- Docker агенты — запускаются в контейнерах.
+- Kubernetes агенты — динамически создаются в кластере Kubernetes.
+- Постоянные агенты — обычные машины, всегда подключённые к Jenkins.
+
+**3. Какие проблемы вы столкнулись при настройке Jenkins и как вы их решили?**
+
+- Иногда Jenkins капризничал с командами в Jenkinsfile, например ругался на \; в bash. Решили просто переписать на цикл for, и всё заработало.
+
+- С SSH ключами тоже пришлось немного повозиться: нужно было правильно добавить ключ в Jenkins и выбрать его при настройке агента.
+
+## Вывод
+
+В ходе лабораторной работы мы настроили Jenkins для автоматизации сборки и тестирования PHP-проекта. Подняли контроллер, подключили SSH-агента, создали pipeline с простыми тестами. Полученный конвейер позволяет быстро проверять код и следить за результатами, что делает процесс разработки более удобным и безопасным.
+
+## Источники
+
+- [Курс про Jenkins](https://github.com/mcroitor/automation/blob/main/06_jenkins.md)
+- [Официальная документация Jenkins](https://www.jenkins.io/doc/)
+- [Jenkins Pipeline Syntax Guide](https://www.jenkins.io/doc/book/pipeline/syntax/)

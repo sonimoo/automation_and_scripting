@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   jenkins-controller:
     image: jenkins/jenkins:lts
@@ -33,3 +31,4 @@ volumes:
 networks:
   jenkins-network:
     driver: bridge
+    
