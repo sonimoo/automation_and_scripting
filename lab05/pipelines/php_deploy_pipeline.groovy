@@ -6,13 +6,15 @@ pipeline {
     }
 
     stages {
+
         stage('Clone PHP Project') {
             steps {
                 echo "Клонируем репозиторий PHP проекта..."
-                sh '''
+
+                sh """
                     rm -rf php-app
                     git clone ${PHP_REPO} php-app
-                '''
+                """
             }
         }
 
@@ -20,10 +22,13 @@ pipeline {
             steps {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
+                // ВНИМАНИЕ: используем ключ ansible-agent-key !!!
                 sshagent(credentials: ['ansible-agent-key']) {
+
                     sh '''
                         ssh -o StrictHostKeyChecking=no ansible@ansible-agent \
-                            "cd /home/ansible/ansible && ansible-playbook -i hosts.ini deploy_php_app.yml"
+                        "cd /home/ansible/ansible && \
+                         ansible-playbook -i hosts.ini deploy_php_app.yml"
                     '''
                 }
             }
@@ -35,7 +40,7 @@ pipeline {
             echo "Ошибка при размещении PHP проекта!"
         }
         success {
-            echo "Проект успешно развернут на тестовом сервере!"
+            echo "PHP проект успешно развернут на тестовом сервере!"
         }
     }
 }
