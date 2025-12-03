@@ -21,9 +21,9 @@ pipeline {
             steps {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
-                sshagent(credentials: ['jenkins']) {
+                sshagent(credentials: ['ssh-agent-key']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ansible@ansible-agent "
+                        ssh -o StrictHostKeyChecking=no jenkins@ansible-agent "
                             cd /home/ansible/ansible &&
                             ansible-playbook -i hosts.ini deploy_php_app.yml
                         "
