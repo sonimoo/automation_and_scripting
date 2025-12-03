@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
-                sshagent(credentials: ['jenkins']) {
+                sshagent(credentials: ['ssh-agent-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no jenkins@ssh-agent "
                             cd /home/jenkins/ansible &&
