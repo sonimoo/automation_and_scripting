@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         PHP_REPO = "https://github.com/sonimoo/project_for_lab04.git"
-        PHP_APP_DIR = "php-app"
     }
 
     stages {
@@ -11,8 +10,8 @@ pipeline {
             steps {
                 echo "Клонируем репозиторий PHP проекта..."
                 sh '''
-                    rm -rf ${PHP_APP_DIR}
-                    git clone ${PHP_REPO} ${PHP_APP_DIR}
+                    rm -rf php-app
+                    git clone ${PHP_REPO} php-app
                 '''
             }
         }
@@ -21,12 +20,10 @@ pipeline {
             steps {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
-                sshagent(credentials: ['ssh-agent-key']) {
+                sshagent(credentials: ['ansible-agent-key']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no jenkins@ansible-agent "
-                            cd /home/ansible/ansible &&
-                            ansible-playbook -i hosts.ini deploy_php_app.yml
-                        "
+                        ssh -o StrictHostKeyChecking=no ansible@ansible-agent \
+                            "cd /home/ansible/ansible && ansible-playbook -i hosts.ini deploy_php_app.yml"
                     '''
                 }
             }
@@ -38,7 +35,7 @@ pipeline {
             echo "Ошибка при размещении PHP проекта!"
         }
         success {
-            echo "PHP проект успешно развернут на тестовом сервере!"
+            echo "Проект успешно развернут на тестовом сервере!"
         }
     }
 }
