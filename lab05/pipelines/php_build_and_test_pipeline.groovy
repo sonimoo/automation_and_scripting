@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED_ID = 'ssh-agent-key'        // ID credentials в Jenkins (мы уже создавали)
-        SSH_HOST    = 'jenkins@ssh-agent'    // пользователь и контейнер ssh-agent
-        PHP_REPO    = 'https://github.com/sonimoo/project_for_lab04'  // ← СЮДА свой URL
-        APP_DIR     = 'php-app'              // папка проекта на ssh-agent
+        SSH_CRED_ID = 'ssh-agent-key'                      // ID SSH credentials в Jenkins
+        SSH_HOST    = 'jenkins@ssh-agent'                  // пользователь + контейнер ssh-agent
+        PHP_REPO    = 'https://github.com/sonimoo/project_for_lab04.git'
+        APP_DIR     = 'php-app'                            // папка, куда клонируем репо на ssh-agent
     }
 
     stages {
