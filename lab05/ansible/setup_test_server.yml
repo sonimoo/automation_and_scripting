@@ -1,0 +1,76 @@
+---
+- name: Настройка тестового сервера для PHP проекта
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Обновить кеш пакетов APT
+      apt:
+        update_cache: yes
+
+    - name: Установить Apache и PHP
+      apt:
+        name:
+          - apache2
+          - php-cli
+          - libapache2-mod-php
+          - php-xml
+          - php-mbstring
+          - php-zip
+        state: present
+
+    - name: Создать папку для приложения
+      file:
+        path: /var/www/phpapp
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Создать тестовый index.php
+      copy:
+        dest: /var/www/phpapp/index.php
+        content: |
+          <?php
+          phpinfo();
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Создать виртуальный хост Apache
+      copy:
+        dest: /etc/apache2/sites-available/phpapp.conf
+        content: |
+          <VirtualHost *:80>
+              ServerName phpapp.local
+              DocumentRoot /var/www/phpapp
+
+              <Directory /var/www/phpapp>
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              ErrorLog ${APACHE_LOG_DIR}/phpapp_error.log
+              CustomLog ${APACHE_LOG_DIR}/phpapp_access.log combined
+          </VirtualHost>
+      notify: Reload Apache
+
+    - name: Отключить дефолтный сайт
+      command: a2dissite 000-default.conf
+      args:
+        warn: false
+      register: disable_default
+      changed_when: "'already disabled' not in disable_default.stdout"
+
+    - name: Включить наш виртуальный хост
+      command: a2ensite phpapp.conf
+      args:
+        warn: false
+      register: enable_phpapp
+      changed_when: "'Enabling site phpapp' in enable_phpapp.stdout"
+
+  handlers:
+    - name: Reload Apache
+      service:
+        name: apache2
+        state: reloaded

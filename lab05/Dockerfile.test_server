@@ -1,0 +1,28 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    openssh-server \
+    apache2 \
+    php-cli libapache2-mod-php php-xml php-mbstring php-zip \
+    sudo \
+    && mkdir -p /var/run/sshd
+
+# Создаём пользователя ansible
+RUN useradd -m -s /bin/bash ansible
+
+# Разрешаем ansible sudo без пароля
+RUN echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    chmod 440 /etc/sudoers.d/ansible
+
+# SSH ключи
+RUN mkdir -p /home/ansible/.ssh
+COPY secrets/test-server-key.pub /home/ansible/.ssh/authorized_keys
+RUN chmod 600 /home/ansible/.ssh/authorized_keys && \
+    chown -R ansible:ansible /home/ansible/.ssh
+
+EXPOSE 22 80
+
+# Запускаем Apache и sshd
+CMD ["/bin/bash", "-c", "service apache2 start && /usr/sbin/sshd -D"]

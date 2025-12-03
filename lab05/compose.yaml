@@ -1,0 +1,48 @@
+services:
+  jenkins-controller:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-controller
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    networks:
+      - lab-net
+
+  ssh-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.ssh_agent
+    container_name: ssh-agent
+    ports:
+      - "2222:22"
+    networks:
+      - lab-net
+
+  ansible-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.ansible_agent
+    container_name: ansible-agent
+    ports:
+      - "2223:22"
+    networks:
+      - lab-net
+
+  test-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.test_server
+    container_name: test-server
+    ports:
+      - "2224:22"
+      - "8081:80"
+    networks:
+      - lab-net
+
+
+networks:
+  lab-net:
+
+volumes:
+  jenkins_home:

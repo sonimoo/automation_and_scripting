@@ -1,0 +1,33 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# --- Устанавливаем нужные пакеты ---
+RUN apt-get update && apt-get install -y \
+    ansible \
+    python3 \
+    python3-pip \
+    sshpass \
+    git \
+    openssh-server \
+    && mkdir -p /var/run/sshd
+
+# --- Создаем пользователя ansible ---
+RUN useradd -m -s /bin/bash ansible
+
+# --- SSH ключи для входа НА ansible-agent со стороны Jenkins ---
+RUN mkdir -p /home/ansible/.ssh
+COPY secrets/ansible-agent-key.pub /home/ansible/.ssh/authorized_keys
+RUN chmod 600 /home/ansible/.ssh/authorized_keys && \
+    chown -R ansible:ansible /home/ansible/.ssh
+
+# --- Приватный ключ для подключения ansible-agent → test-server ---
+COPY secrets/test-server-key /home/ansible/.ssh/test-server-key
+RUN chmod 600 /home/ansible/.ssh/test-server-key && \
+    chown ansible:ansible /home/ansible/.ssh/test-server-key
+
+# --- SSH порт ---
+EXPOSE 22
+
+# --- Запуск sshd ---
+CMD ["/usr/sbin/sshd", "-D"]

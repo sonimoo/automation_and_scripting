@@ -7,4 +7,4 @@
 
 Научиться создавать Ansible playbook для автоматизации конфигурации серверов.
 
-very soon 
+very soon
