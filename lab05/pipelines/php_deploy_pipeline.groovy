@@ -10,7 +10,6 @@ pipeline {
         stage('Clone PHP Project') {
             steps {
                 echo "Клонируем репозиторий PHP проекта..."
-
                 sh """
                 rm -rf php-app
                 git clone ${PHP_REPO} php-app
@@ -22,10 +21,14 @@ pipeline {
             steps {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
-                sh """
-                cd lab05/ansible
-                ansible-playbook -i hosts.ini deploy_php_app.yml
-                """
+                sshagent(credentials: ['jenkins']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no jenkins@ssh-agent "
+                            cd /home/jenkins/ansible &&
+                            ansible-playbook -i hosts.ini deploy_php_app.yml
+                        "
+                    '''
+                }
             }
         }
     }
