@@ -23,7 +23,7 @@ pipeline {
                 echo "Размещаем проект на тестовом сервере через Ansible..."
 
                 sh """
-                cd ansible
+                cd lab05/ansible
                 ansible-playbook -i hosts.ini deploy_php_app.yml
                 """
             }
