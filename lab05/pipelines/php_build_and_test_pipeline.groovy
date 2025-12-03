@@ -35,13 +35,13 @@ pipeline {
                             php composer.phar install --no-interaction \
                         '
 
-                        # Запускаем модульные тесты
+                                                # Запускаем модульные тесты
                         ssh -o StrictHostKeyChecking=no ${SSH_HOST} ' \
                             cd ${APP_DIR} && \
                             if [ -x vendor/bin/phpunit ]; then \
-                                ./vendor/bin/phpunit; \
+                                ./vendor/bin/phpunit tests; \
                             else \
-                                php vendor/bin/phpunit; \
+                                php vendor/bin/phpunit tests; \
                             fi \
                         '
                     """
