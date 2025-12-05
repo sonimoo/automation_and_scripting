@@ -6,16 +6,14 @@ pipeline {
     }
 
     stages {
-
-        stage('Настройка тестового сервера через Ansible') {
+        stage('Запуск Ansible Playbook') {
             steps {
                 sshagent(credentials: [ANSIBLE_CRED]) {
                     sh '''
                         set -e
 
-                        # Заходим на ansible-agent и запускаем playbook
                         ssh -o StrictHostKeyChecking=no ansible@ansible-agent "
-                            cd /home/ansible/ansible &&
+                            cd /ansible &&
                             ansible-playbook -i hosts.ini setup_test_server.yml
                         "
                     '''

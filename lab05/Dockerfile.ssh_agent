@@ -1,22 +1,24 @@
-FROM ubuntu:22.04
-
-ENV DEBIAN_FRONTEND=noninteractive
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
     openssh-server \
     git \
-    php-cli php-xml php-zip php-mbstring \
     unzip \
-    && mkdir -p /var/run/sshd
+    && rm -rf /var/lib/apt/lists/*
 
-# User for SSH
-RUN useradd -m -s /bin/bash jenkins
+# Install Composer
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
+    rm composer-setup.php
 
-# SSH keys
-RUN mkdir -p /home/jenkins/.ssh
-COPY secrets/ssh-agent-key.pub /home/jenkins/.ssh/authorized_keys
-RUN chmod 600 /home/jenkins/.ssh/authorized_keys && \
-    chown -R jenkins:jenkins /home/jenkins/.ssh
+# Create Jenkins user
+RUN useradd -m jenkins
+
+RUN mkdir -p /var/run/sshd
+
+RUN mkdir -p /home/jenkins/.ssh \
+    && chown -R jenkins:jenkins /home/jenkins/.ssh \
+    && chmod 700 /home/jenkins/.ssh
 
 EXPOSE 22
 

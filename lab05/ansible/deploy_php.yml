@@ -1,0 +1,45 @@
+---
+- hosts: testserver
+  become: yes
+  tasks:
+
+    - name: Убедиться, что git установлен
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: Клонировать или обновить PHP проект на тестовом сервере
+      git:
+        repo: 'https://github.com/sonimoo/project_for_lab04.git'
+        dest: /var/www/php_project
+        version: main
+        force: yes
+
+    - name: Установить необходимые PHP расширения
+      apt:
+        name:
+          - php-xml
+          - php-curl
+          - php-mbstring
+        state: present
+        update_cache: yes
+
+
+    - name: Установить Composer (если отсутствует)
+      command: >
+        sh -c "php -r 'copy(\"https://getcomposer.org/installer\", \"composer-setup.php\");'
+        && php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        && rm composer-setup.php"
+      args:
+        creates: /usr/local/bin/composer
+
+    - name: Установить Composer зависимости
+      command: composer install
+      args:
+        chdir: /var/www/php_project
+
+    - name: Перезагрузить Apache
+      service:
+        name: apache2
+        state: restarted

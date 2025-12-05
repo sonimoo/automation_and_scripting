@@ -2,33 +2,21 @@ pipeline {
     agent any
 
     environment {
-        PHP_REPO = "https://github.com/sonimoo/project_for_lab04.git"
+        ANSIBLE_CRED = 'ansible-agent-key'  
     }
 
     stages {
 
-        stage('Clone PHP Project') {
+        stage('Запуск Ansible Deploy Playbook') {
             steps {
-                echo "Клонируем репозиторий PHP проекта..."
-
-                sh """
-                    rm -rf php-app
-                    git clone ${PHP_REPO} php-app
-                """
-            }
-        }
-
-        stage('Deploy to Test Server with Ansible') {
-            steps {
-                echo "Размещаем проект на тестовом сервере через Ansible..."
-
-                // ВНИМАНИЕ: используем ключ ansible-agent-key !!!
-                sshagent(credentials: ['ansible-agent-key']) {
-
+                sshagent(credentials: [ANSIBLE_CRED]) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ansible@ansible-agent \
-                        "cd /home/ansible/ansible && \
-                         ansible-playbook -i hosts.ini deploy_php_app.yml"
+                        set -e
+
+                        # Запускаем playbook деплоя на ansible-agent
+                        ssh -o StrictHostKeyChecking=no ansible@ansible-agent "
+                            ansible-playbook -i /ansible/hosts.ini /ansible/deploy_php.yml
+                        "
                     '''
                 }
             }
@@ -36,11 +24,11 @@ pipeline {
     }
 
     post {
-        failure {
-            echo "Ошибка при размещении PHP проекта!"
-        }
         success {
-            echo "PHP проект успешно развернут на тестовом сервере!"
+            echo 'PHP проект успешно развернут на тестовом сервере!'
+        }
+        failure {
+            echo 'Ошибка при деплое PHP проекта!'
         }
     }
 }

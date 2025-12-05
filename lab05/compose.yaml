@@ -4,10 +4,12 @@ services:
     container_name: jenkins-controller
     ports:
       - "8080:8080"
+      - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
     networks:
-      - lab-net
+      - jenkins-network
+    restart: unless-stopped
 
   ssh-agent:
     build:
@@ -17,17 +19,17 @@ services:
     ports:
       - "2222:22"
     networks:
-      - lab-net
+      - jenkins-network
+    restart: unless-stopped
 
   ansible-agent:
     build:
       context: .
       dockerfile: Dockerfile.ansible_agent
     container_name: ansible-agent
-    ports:
-      - "2223:22"
     networks:
-      - lab-net
+      - jenkins-network
+    restart: unless-stopped
 
   test-server:
     build:
@@ -36,13 +38,13 @@ services:
     container_name: test-server
     ports:
       - "2224:22"
-      - "8081:80"
+      - "8081:80" 
     networks:
-      - lab-net
-
-
-networks:
-  lab-net:
+      - jenkins-network
+    restart: unless-stopped
 
 volumes:
   jenkins_home:
+
+networks:
+  jenkins-network:
